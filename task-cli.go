@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"slices"
+	"strconv"
 	"time"
 	// "errors"
 )
@@ -19,9 +21,12 @@ type Task struct {
 
 // Listing all tasks
 func list(tasks []Task) {
-	// need to print it out properly
 	for _, task := range tasks {
-		fmt.Printf("- [%v] %v - %v (%v | %v)\n", task.Id, task.Description, task.Status, task.CreatedAt, task.UpdatedAt)
+		if task.UpdatedAt == task.CreatedAt {
+			fmt.Printf("- [%v] %v - %v (%v)\n", task.Id, task.Description, task.Status, task.CreatedAt)
+		} else {
+			fmt.Printf("- [%v] %v - %v (%v | Updated: %v)\n", task.Id, task.Description, task.Status, task.CreatedAt, task.UpdatedAt)
+		}
 	}
 }
 
@@ -37,6 +42,7 @@ func listStatus(tasks []Task, status string) {
 	list(tasksByStatus)
 }
 
+// Adding a new task
 func add(tasks []Task, description string) {
 	id := 1
 	if tasks != nil {
@@ -54,6 +60,34 @@ func add(tasks []Task, description string) {
 	err = os.WriteFile("tasks.json", jsonData, 0644)
 	if err != nil {
 		panic(err)
+	} else {
+		fmt.Printf("Task added successfully (ID: %v)", task.Id)
+	}
+}
+
+func delete(tasks []Task, id string) {
+	for i := range tasks {
+		if strconv.Itoa(tasks[i].Id) == id {
+			tasks = slices.Delete(tasks, i, i+1)
+			save(tasks)
+			fmt.Printf("Task deleted successfully (ID: %v)", id)
+			return
+		}
+	}
+	fmt.Printf("Task was not found (ID: %v)", id)
+}
+
+func save(tasks []Task) bool {
+	jsonData, err := json.MarshalIndent(tasks, "", "  ")
+	if err != nil {
+		panic(err)
+	}
+
+	err = os.WriteFile("tasks.json", jsonData, 0644)
+	if err != nil {
+		panic(err)
+	} else {
+		return true
 	}
 }
 
@@ -77,5 +111,8 @@ func main() {
 	case "add":
 		// check for os.Args[2]
 		add(tasks, os.Args[2])
+	case "delete":
+		// check for os.Args[2] = int
+		delete(tasks, os.Args[2])
 	}
 }
