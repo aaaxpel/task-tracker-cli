@@ -65,12 +65,40 @@ func add(tasks []Task, description string) {
 	}
 }
 
+// Updating a new task
+func update(tasks []Task, id string, description string) {
+	for i := range tasks {
+		if strconv.Itoa(tasks[i].Id) == id {
+			tasks[i].Description = description
+			tasks[i].UpdatedAt = time.Now().Format("Jan 2, 2006 15:04")
+			save(tasks)
+			fmt.Printf("Task updated successfully (ID: %v)", id)
+			return
+		}
+	}
+	fmt.Printf("Task was not found (ID: %v)", id)
+}
+
+// Deleting a new task
 func delete(tasks []Task, id string) {
 	for i := range tasks {
 		if strconv.Itoa(tasks[i].Id) == id {
 			tasks = slices.Delete(tasks, i, i+1)
 			save(tasks)
 			fmt.Printf("Task deleted successfully (ID: %v)", id)
+			return
+		}
+	}
+	fmt.Printf("Task was not found (ID: %v)", id)
+}
+
+func mark(tasks []Task, id string, status string) {
+	for i := range tasks {
+		if strconv.Itoa(tasks[i].Id) == id {
+			tasks[i].Status = status
+			tasks[i].UpdatedAt = time.Now().Format("Jan 2, 2006 15:04")
+			save(tasks)
+			fmt.Printf("Task updated successfully (ID: %v)", id)
 			return
 		}
 	}
@@ -114,5 +142,12 @@ func main() {
 	case "delete":
 		// check for os.Args[2] = int
 		delete(tasks, os.Args[2])
+	case "update":
+		// check for os.Args[2] = int
+		update(tasks, os.Args[2], os.Args[3])
+	case "mark-in-progress":
+		mark(tasks, os.Args[2], "in-progress")
+	case "mark-done":
+		mark(tasks, os.Args[2], "done")
 	}
 }
