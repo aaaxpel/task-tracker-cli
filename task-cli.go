@@ -7,7 +7,6 @@ import (
 	"slices"
 	"strconv"
 	"time"
-	// "errors"
 )
 
 type Task struct {
@@ -32,14 +31,18 @@ func list(tasks []Task) {
 
 // Listing tasks by status
 func listStatus(tasks []Task, status string) {
-	// need to return some text when no results found maybe
 	var tasksByStatus []Task
 	for i := range tasks {
 		if tasks[i].Status == status {
 			tasksByStatus = append(tasksByStatus, tasks[i])
 		}
 	}
-	list(tasksByStatus)
+	if len(tasksByStatus) == 0 {
+		fmt.Printf("Tasks with status %v not found\n", status)
+	} else {
+		fmt.Printf("Tasks with status %v:\n", status)
+		list(tasksByStatus)
+	}
 }
 
 // Adding a new task
@@ -92,6 +95,7 @@ func delete(tasks []Task, id string) {
 	fmt.Printf("Task was not found (ID: %v)", id)
 }
 
+// Mark task as done or in-progress
 func mark(tasks []Task, id string, status string) {
 	for i := range tasks {
 		if strconv.Itoa(tasks[i].Id) == id {
@@ -105,6 +109,7 @@ func mark(tasks []Task, id string, status string) {
 	fmt.Printf("Task was not found (ID: %v)", id)
 }
 
+// Save to tasks.json
 func save(tasks []Task) bool {
 	jsonData, err := json.MarshalIndent(tasks, "", "  ")
 	if err != nil {
