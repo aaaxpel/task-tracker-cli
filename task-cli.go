@@ -20,6 +20,12 @@ type Task struct {
 
 // Listing all tasks
 func list(tasks []Task) {
+	if len(tasks) == 0 {
+		fmt.Println("There are no tasks!")
+		return
+	} else {
+		fmt.Println("\nList of tasks:")
+	}
 	for _, task := range tasks {
 		if task.UpdatedAt == task.CreatedAt {
 			fmt.Printf("- [%v] %v - %v (%v)\n", task.Id, task.Description, task.Status, task.CreatedAt)
@@ -124,6 +130,21 @@ func save(tasks []Task) bool {
 	}
 }
 
+func help() {
+	fmt.Print(`
+You should try adding following arguments:
+list - Listing all tasks
+list [todo, in-progress, done] - Listing tasks by status
+
+add "Buy groceries" - Adding a new task
+update 1 "Feed the cat" - Updating a task
+delete 1 - Deleting a task
+
+mark-in-progress 1 - Marking a task as in progress
+mark-done 1 - Marking a task as done
+`)
+}
+
 func main() {
 	file, err := os.ReadFile("tasks.json")
 	if err != nil {
@@ -132,27 +153,48 @@ func main() {
 	var tasks []Task
 	json.Unmarshal(file, &tasks)
 
-	// check for args
-	switch os.Args[1] {
-	case "list":
-		if len(os.Args) >= 3 {
-			// check if it's valid
-			listStatus(tasks, os.Args[2])
-		} else {
-			list(tasks)
+	if len(os.Args) < 2 {
+		help()
+	} else {
+		switch os.Args[1] {
+		case "list":
+			if len(os.Args) >= 3 {
+				listStatus(tasks, os.Args[2])
+			} else {
+				list(tasks)
+			}
+		case "add":
+			if len(os.Args) < 3 {
+				fmt.Print("Please write task description")
+				return
+			}
+			add(tasks, os.Args[2])
+		case "delete":
+			if len(os.Args) < 3 {
+				fmt.Print("Please specify task ID")
+				return
+			}
+			delete(tasks, os.Args[2])
+		case "update":
+			if len(os.Args) < 4 {
+				fmt.Print("Please specify task ID and add new task description")
+				return
+			}
+			update(tasks, os.Args[2], os.Args[3])
+		case "mark-in-progress":
+			if len(os.Args) < 3 {
+				fmt.Print("Please add task ID")
+				return
+			}
+			mark(tasks, os.Args[2], "in-progress")
+		case "mark-done":
+			if len(os.Args) < 3 {
+				fmt.Print("Please add task ID")
+				return
+			}
+			mark(tasks, os.Args[2], "done")
+		default:
+			help()
 		}
-	case "add":
-		// check for os.Args[2]
-		add(tasks, os.Args[2])
-	case "delete":
-		// check for os.Args[2] = int
-		delete(tasks, os.Args[2])
-	case "update":
-		// check for os.Args[2] = int
-		update(tasks, os.Args[2], os.Args[3])
-	case "mark-in-progress":
-		mark(tasks, os.Args[2], "in-progress")
-	case "mark-done":
-		mark(tasks, os.Args[2], "done")
 	}
 }
